@@ -1,0 +1,52 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: invoice
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+    depends_on:
+      - db
+
+  nginx:
+    image: nginx:alpine
+    container_name: invoice_nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+
+  db:
+    image: mysql:8.0
+    container_name: invoice_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: invoice
+      MYSQL_USER: invoice
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+
+  pma:
+    image: phpmyadmin/phpmyadmin
+    container_name: invoice_pma
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: invoice
+      PMA_PASSWORD: secret
+    depends_on:
+      - db
+
+volumes:
+  dbdata:
+
