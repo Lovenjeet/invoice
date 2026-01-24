@@ -165,9 +165,9 @@
                     </div>
                     <div class="row g-3">
                         <div class="col-md-3">
-                            <label class="form-label">HSCode <span class="text-danger">*</span></label>
+                            <label class="form-label">SKU <span class="text-danger">*</span></label>
                             <select name="items[${itemIndex}][hs_code_id]" class="form-select item-hs-code" required>
-                                <option value="">Select HSCode</option>
+                                <option value="">Select SKU</option>
                                 ${hsCodes.map(code => `
                                     <option value="${code.id}">${code.display}</option>
                                 `).join('')}
