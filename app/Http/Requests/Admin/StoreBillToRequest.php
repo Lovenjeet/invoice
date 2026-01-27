@@ -22,6 +22,7 @@ class StoreBillToRequest extends FormRequest
             'vat_eori' => 'nullable|string|max:255',
             'vat_eori2' => 'nullable|string|max:255',
             'contact2' => 'nullable|string|max:50',
+            'logo' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:2048',
         ];
     }
 

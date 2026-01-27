@@ -20,5 +20,6 @@ class BillTo extends Model
         'vat_eori',
         'vat_eori2',
         'contact2',
+        'logo',
     ];
 }

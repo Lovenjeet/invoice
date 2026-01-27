@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StoreBillToRequest;
 use App\Http\Requests\Admin\UpdateBillToRequest;
 use App\Models\BillTo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class BillToController extends Controller
 {
@@ -86,6 +87,12 @@ class BillToController extends Controller
     {
         $data = $request->validated();
         
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            $logoPath = $request->file('logo')->store('logos', 'public');
+            $data['logo'] = $logoPath;
+        }
+        
         $billTo = BillTo::create($data);
         
         if ($request->ajax() || $request->expectsJson()) {
@@ -114,6 +121,18 @@ class BillToController extends Controller
     public function update(UpdateBillToRequest $request, BillTo $billTo)
     {
         $data = $request->validated();
+        
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            // Delete old logo if exists
+            if ($billTo->logo && Storage::disk('public')->exists($billTo->logo)) {
+                Storage::disk('public')->delete($billTo->logo);
+            }
+            
+            // Store new logo
+            $logoPath = $request->file('logo')->store('logos', 'public');
+            $data['logo'] = $logoPath;
+        }
         
         $billTo->update($data);
         

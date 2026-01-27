@@ -20,7 +20,7 @@
     
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
-            <form method="POST" action="{{ route('bill-tos.store') }}" id="billToForm">
+            <form method="POST" action="{{ route('bill-tos.store') }}" id="billToForm" enctype="multipart/form-data">
                 @csrf
                 
                 <div class="row g-4">
@@ -48,6 +48,17 @@
                     <div class="col-md-6">
                         <x-form.input name="vat_eori2" label="VAT/EORI 2" :value="old('vat_eori2')" placeholder="Enter VAT/EORI 2 (optional)" />
                     </div>
+                    <div class="col-md-12">
+                        <label for="logo" class="form-label">Logo</label>
+                        <input type="file" name="logo" id="logo" class="form-control @error('logo') is-invalid @enderror" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp">
+                        @error('logo')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted">Upload a logo image (max 2MB). Supported formats: JPEG, JPG, PNG, GIF, WEBP</small>
+                        <div id="logoPreview" class="mt-2" style="display: none;">
+                            <img id="logoPreviewImg" src="" alt="Logo Preview" style="max-height: 100px; max-width: 200px; border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="d-flex justify-content-end gap-2 mt-4 pt-4 border-top">
@@ -65,6 +76,29 @@
 
 @push('scripts')
 <script src="{{ asset('js/bill-tos/form.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const logoInput = document.getElementById('logo');
+        const logoPreview = document.getElementById('logoPreview');
+        const logoPreviewImg = document.getElementById('logoPreviewImg');
+        
+        if (logoInput) {
+            logoInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        logoPreviewImg.src = e.target.result;
+                        logoPreview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    logoPreview.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>
 @endpush
 @endsection
 

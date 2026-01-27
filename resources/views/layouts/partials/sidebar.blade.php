@@ -18,9 +18,9 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{{ route('shippers.index') }}" class="nav-link {{ request()->routeIs('shippers.*') ? 'active' : '' }}">
+                <a href="{{ route('suppliers.index') }}" class="nav-link {{ request()->routeIs('suppliers.*') ? 'active' : '' }}">
                     <i class="bi bi-truck"></i>
-                    <span>Shippers</span>
+                    <span>Suppliers</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -36,9 +36,15 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{{ route('invoices.create') }}" class="nav-link {{ request()->routeIs('invoices.*') ? 'active' : '' }}">
+                <a href="{{ route('invoices.index') }}" class="nav-link {{ request()->routeIs('invoices.*') ? 'active' : '' }}">
                     <i class="bi bi-file-earmark-text"></i>
                     <span>Invoices</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('hs-codes.index') }}" class="nav-link {{ request()->routeIs('hs-codes.*') ? 'active' : '' }}">
+                    <i class="bi bi-tags"></i>
+                    <span>SKUs</span>
                 </a>
             </li>
         </ul>

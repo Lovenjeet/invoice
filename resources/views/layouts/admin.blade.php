@@ -8,7 +8,7 @@
     
     @vite(['resources/css/admin.css', 'resources/js/admin.js'])
 </head>
-<body class="admin-layout">
+<body class="admin-layout" data-logout-url="{{ route('logout') }}">
     <div class="wrapper">
         @include('layouts.partials.sidebar')
         
@@ -25,7 +25,9 @@
                 @endif
                 
                 @if($errors->any())
-                    <x-ui.alert type="danger" :message="'Please fix the errors below.'" />
+                    @foreach($errors->all() as $error)
+                        <x-ui.alert type="danger" :message="$error" />
+                    @endforeach
                 @endif
                 
                 @yield('content')
@@ -36,6 +38,7 @@
     </div>
     
     @stack('scripts')
+    <script src="{{ asset('js/admin/idle-detection.js') }}"></script>
 </body>
 </html>
 

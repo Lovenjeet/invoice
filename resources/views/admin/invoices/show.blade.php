@@ -31,16 +31,18 @@
         }
 
         .watermark {
-            position: fixed;
+            position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 150px;
-            color: rgba(0, 0, 0, 0.03);
+            font-size: 180px;
+            color: rgba(0, 0, 0, 0.1);
             z-index: 0;
             font-weight: bold;
             pointer-events: none;
             white-space: nowrap;
+            width: 100%;
+            text-align: center;
         }
 
         /* Header Section */
@@ -51,10 +53,25 @@
             margin-bottom: 20px;
         }
 
+        .header-left {
+            flex: 0 0 auto;
+        }
+
+        .header-right {
+            flex: 0 0 auto;
+            text-align: right;
+        }
+
         .logo-section {
             display: flex;
             align-items: center;
             gap: 12px;
+        }
+
+        .logo-section img {
+            height: 70px;
+            width: auto;
+            object-fit: contain;
         }
 
         .logo {
@@ -291,7 +308,7 @@
             color: white;
         }
 
-        .print-button {
+        .print-button,.btn-submit {
             display: inline-flex;
             align-items: center;
             padding: 10px 20px;
@@ -307,14 +324,129 @@
             margin-left: 10px;
         }
 
-        .print-button:hover {
+        .print-button:hover, .btn-submit:hover {
             background: #218838;
+            color: white;
+        }
+
+        .approve-button {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 20px;
+            background: #06CEA8;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .approve-button:hover {
+            background: #05b896;
             color: white;
         }
 
         .button-group {
             margin-bottom: 20px;
         }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 30px;
+            border: 1px solid #888;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #0066cc;
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #06CEA8;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-cancel {
+            padding: 10px 20px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-cancel:hover {
+            background: #5a6268;
+        }
+
 
         @media print {
             .button-group {
@@ -337,9 +469,10 @@
     </style>
 </head>
 <body>
-    <div class="watermark">Page</div>
-    
     <div class="invoice-container">
+        @if($invoice->status !== 'approved')
+        <div class="watermark">DRAFT</div>
+        @endif
         <!-- Action Buttons -->
         <div class="button-group">
             <a href="{{ route('invoices.edit', $invoice->id) }}" class="back-button">
@@ -348,24 +481,29 @@
                 </svg>
                 Edit Invoice
             </a>
-            <button onclick="window.print()" class="print-button">
+            @if($invoice->status !== 'approved')
+            <button onclick="openApproveModal()" class="print-button">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px;">
-                    <path d="M4 2H12V5H4V2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M4 5H2C1.44772 5 1 5.44772 1 6V12C1 12.5523 1.44772 13 2 13H4M4 5V13M4 13H12M12 13H14C14.5523 13 15 12.5523 15 12V6C15 5.44772 14.5523 5 14 5H12M12 5V2M12 2H4M6 9H10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M13.5 4L6 11.5L2.5 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                Print Invoice
+                Approve and Send
             </button>
+            @endif
         </div>
         
         <!-- Header -->
         <div class="header-top">
-            <div style="flex: 1;">
+            <div class="header-left">
                 <div class="logo-section">
-                    <img src="{{ asset('particula.png') }}" alt="Logo" style="height: 70px;">
+                    @if($invoice->billTo->logo && Storage::disk('public')->exists($invoice->billTo->logo))
+                        <img src="{{ asset('storage/' . $invoice->billTo->logo) }}" alt="Logo">
+                    @else
+                        <img src="{{ asset('particula.png') }}" alt="Logo">
+                    @endif
                 </div>
                 <div class="invoice-title">Commercial invoice</div>
             </div>
-            <div class="invoice-details">
+            <div class="header-right invoice-details">
                 <div class="d-flex">
                     <h3>INVOICE NO.: &nbsp; </h3>
                     <p style="margin-top: 1px;"><strong>{{ $invoice->invoice_no }}</strong></p>
@@ -389,20 +527,20 @@
 
         <!-- Information Sections -->
         <div class="info-section">
-            <!-- Shipper (Left Top) -->
+            <!-- Supplier (Left Top) -->
             <div class="info-box">
-                <h4>SHIPPER</h4>
-                <p> <u>{{ $invoice->shipper->name }}</u> </p>
-                <p> <u>{{ $invoice->shipper->address1 }}</u> </p>
-                @if($invoice->shipper->address2)
-                <p>{{ $invoice->shipper->address2 }}</p>
+                <h4>SUPPLIER</h4>
+                <p> <u>{{ $invoice->supplier->name }}</u> </p>
+                <p> <u>{{ $invoice->supplier->address1 }}</u> </p>
+                @if($invoice->supplier->address2)
+                <p>{{ $invoice->supplier->address2 }}</p>
                 @endif
-                <p>{{ $invoice->shipper->city }}</p>
-                @if($invoice->shipper->contact1)
-                <p>Contact: {{ $invoice->shipper->contact1 }}</p>
+                <p>{{ $invoice->supplier->city }}</p>
+                @if($invoice->supplier->contact1)
+                <p>Contact: {{ $invoice->supplier->contact1 }}</p>
                 @endif
-                @if($invoice->shipper->contact2)
-                <p> {{ $invoice->shipper->contact2 }}</p>
+                @if($invoice->supplier->contact2)
+                <p> {{ $invoice->supplier->contact2 }}</p>
                 @endif
             </div>
 
@@ -442,9 +580,7 @@
                     <th class="text-center">QTY</th>
                     <th class="text-center">UNIT PRICE ($)</th>
                     <th class="text-center">AMOUNT ($)</th>
-                    <th class="text-center">NUM. BOXES</th>
                     <th class="text-center">G.W. (KG)</th>
-                    <th>DIMENSIONS</th>
                 </tr>
             </thead>
             <tbody>
@@ -467,9 +603,7 @@
                     <td class="text-center">{{ number_format($item->qty, 2) }}</td>
                     <td class="text-center">{{ number_format($item->unit_price, 2) }}</td>
                     <td class="text-center">{{ number_format($item->amount, 2) }}</td>
-                    <td class="text-center">{{ number_format($item->number_of_boxes, 2) }}</td>
                     <td class="text-center">{{ number_format($item->g_w, 2) }}</td>
-                    <td>{{ $item->dimensions ?? '-' }}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -478,17 +612,105 @@
         <!-- Summary -->
         <div class="summary-section">
             <div class="summary-box">
-                <h4>Summary</h4>
-                <p><strong>Number of Boxes:</strong> {{ $invoice->total_boxes }}</p>
-                <p><strong>Total G.W.:</strong> {{ number_format($invoice->total_gw, 3) }} K/G</p>
+                @if($invoice->remarks)
+                <div style="margin-top: 15px;">
+                    <h4>Remarks</h4>
+                    <p style="white-space: pre-wrap;">{{ $invoice->remarks }}</p>
+                </div>
+                @endif
             </div>
             <div class="summary-box financial-summary">
                 <h4>Financial Summary</h4>
-                <p><strong>SUBTOTAL:</strong> {{ number_format($invoice->subtotal, 2) }}</p>
-                <p><strong>Shipping Value:</strong> {{ number_format($invoice->shipping_value, 2) }}</p>
                 <p class="total-row">TOTAL: $ {{ number_format($invoice->total, 2) }}</p>
             </div>
         </div>
     </div>
+
+    <!-- Approve Modal -->
+    <div id="approveModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close" onclick="closeApproveModal()">&times;</span>
+                <h3>Approve and Send Invoice</h3>
+            </div>
+            <form id="approveForm" onsubmit="submitApproval(event)">
+                @csrf
+                <div class="form-group">
+                    <label for="unc_number">UNC Number <span class="text-danger">*</span></label>
+                    <input type="text" id="unc_number" name="unc_number" required placeholder="Enter UNC number">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address <span class="text-danger">*</span></label>
+                    <input type="email" id="email" name="email" required placeholder="Enter email address">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeApproveModal()">Cancel</button>
+                    <button type="submit" class="btn-submit">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px; display: inline-block; vertical-align: middle;">
+                            <path d="M13.5 4L6 11.5L2.5 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Approve and Send
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openApproveModal() {
+            document.getElementById('approveModal').style.display = 'block';
+        }
+
+        function closeApproveModal() {
+            document.getElementById('approveModal').style.display = 'none';
+            document.getElementById('approveForm').reset();
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('approveModal');
+            if (event.target == modal) {
+                closeApproveModal();
+            }
+        }
+
+        function submitApproval(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            const submitButton = form.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            
+            // Disable button and show loading
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span>Processing...</span>';
+            
+            fetch('{{ route("invoices.approve", $invoice->id) }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Invoice approved and sent successfully!');
+                    closeApproveModal();
+                    location.reload();
+                } else {
+                    alert(data.message || 'An error occurred. Please try again.');
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalText;
+            });
+        }
+    </script>
 </body>
 </html>

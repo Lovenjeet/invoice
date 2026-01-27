@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('shipper_id');
+            $table->foreignId('supplier_id');
             $table->foreignId('bill_to_id');
             $table->foreignId('ship_to_id');
             $table->string('invoice_no');

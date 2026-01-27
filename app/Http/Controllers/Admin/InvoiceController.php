@@ -9,20 +9,131 @@ use App\Models\BillTo;
 use App\Models\HSCode;
 use App\Models\Invoice;
 use App\Models\ShipTo;
-use App\Models\Shipper;
+use App\Models\Supplier;
+use App\Notifications\InvoiceApprovedNotification;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 
 class InvoiceController extends Controller
 {
+    public function index(Request $request)
+    {
+        if ($request->ajax()) {
+            return $this->getInvoicesData($request);
+        }
+        
+        $suppliers = Supplier::orderBy('name')->get();
+        $billTos = BillTo::orderBy('name')->get();
+        $shipTos = ShipTo::orderBy('name')->get();
+        
+        return view('admin.invoices.index', compact('suppliers', 'billTos', 'shipTos'));
+    }
+
+    private function getInvoicesData(Request $request)
+    {
+        $draw = $request->get('draw', 1);
+        $start = $request->get('start', 0);
+        $length = $request->get('length', 25);
+        $search = $request->get('search')['value'] ?? '';
+        
+        $columns = ['unc_number', 'approval_email', 'supplier_id', 'bill_to_id', 'ship_to_id', 'total', 'status'];
+        $orderColumn = $request->get('order')[0]['column'] ?? 0;
+        $orderDir = $request->get('order')[0]['dir'] ?? 'desc';
+        $orderBy = isset($columns[$orderColumn]) ? $columns[$orderColumn] : 'id';
+        
+        $query = Invoice::with(['supplier', 'billTo', 'shipTo']);
+        
+        // Search functionality
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('invoice_no', 'like', "%{$search}%")
+                  ->orWhere('unc_number', 'like', "%{$search}%")
+                  ->orWhere('approval_email', 'like', "%{$search}%")
+                  ->orWhereHas('supplier', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('billTo', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('shipTo', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+        
+        // Status filter
+        if ($request->has('status_filter') && !empty($request->status_filter)) {
+            $query->where('status', $request->status_filter);
+        }
+        
+        // Supplier filter
+        if ($request->has('supplier_filter') && !empty($request->supplier_filter)) {
+            $query->where('supplier_id', $request->supplier_filter);
+        }
+        
+        // Bill To filter
+        if ($request->has('bill_to_filter') && !empty($request->bill_to_filter)) {
+            $query->where('bill_to_id', $request->bill_to_filter);
+        }
+        
+        // Ship To filter
+        if ($request->has('ship_to_filter') && !empty($request->ship_to_filter)) {
+            $query->where('ship_to_id', $request->ship_to_filter);
+        }
+        
+        // Get total records before filtering
+        $totalRecords = Invoice::count();
+        
+        // Get filtered count
+        $filteredRecords = $query->count();
+        
+        // Order and paginate
+        $invoices = $query->orderBy($orderBy, $orderDir)
+                        ->skip($start)
+                        ->take($length)
+                        ->get();
+        
+        $data = [];
+        foreach ($invoices as $invoice) {
+            $statusBadge = $invoice->status === 'approved' 
+                ? '<span class="badge bg-success bg-opacity-10 text-success rounded-pill">Approved</span>'
+                : '<span class="badge bg-danger bg-opacity-10 text-danger rounded-pill">Draft</span>';
+            
+            $supplierName = e($invoice->supplier->name ?? 'N/A');
+            $billToName = e($invoice->billTo->name ?? 'N/A');
+            $shipToName = e($invoice->shipTo->name ?? 'N/A');
+            
+            $data[] = [
+                'unc_number' => '<span>' . e($invoice->unc_number ?? 'N/A') . '</span>',
+                'approval_email' => '<span>' . e($invoice->approval_email ?? 'N/A') . '</span>',
+                'supplier' => '<span class="text-truncate-cell" title="' . $supplierName . '">' . $supplierName . '</span>',
+                'bill_to' => '<span class="text-truncate-cell" title="' . $billToName . '">' . $billToName . '</span>',
+                'ship_to' => '<span class="text-truncate-cell" title="' . $shipToName . '">' . $shipToName . '</span>',
+                'total' => '<span class="fw-medium">$ ' . number_format($invoice->total, 2) . '</span>',
+                'status' => $statusBadge,
+                'actions' => view('admin.invoices.partials.action-buttons', compact('invoice'))->render(),
+            ];
+        }
+        
+        return response()->json([
+            'draw' => intval($draw),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $filteredRecords,
+            'data' => $data
+        ]);
+    }
+
     public function create()
     {
-        $shippers = Shipper::orderBy('name')->get();
+        $suppliers = Supplier::orderBy('name')->get();
         $billTos = BillTo::orderBy('name')->get();
         $shipTos = ShipTo::orderBy('name')->get();
         $hsCodes = HSCode::orderBy('id')->get();
         
-        return view('admin.invoices.create', compact('shippers', 'billTos', 'shipTos', 'hsCodes'));
+        return view('admin.invoices.create', compact('suppliers', 'billTos', 'shipTos', 'hsCodes'));
     }
 
     public function store(StoreInvoiceRequest $request)
@@ -31,13 +142,11 @@ class InvoiceController extends Controller
             DB::beginTransaction();
 
             $subtotal = 0;
-            $totalBoxes = 0;
             $totalGw = 0;
 
             // Calculate totals from items
             foreach ($request->items as $item) {
                 $subtotal += $item['amount'];
-                $totalBoxes += $item['number_of_boxes'] ?? 0;
                 $totalGw += $item['g_w'] ?? 0;
             }
 
@@ -46,16 +155,17 @@ class InvoiceController extends Controller
 
             // Create invoice
             $invoice = Invoice::create([
-                'shipper_id' => $request->shipper_id,
+                'supplier_id' => $request->supplier_id,
                 'bill_to_id' => $request->bill_to_id,
                 'ship_to_id' => $request->ship_to_id,
                 'invoice_no' => $request->invoice_no,
                 'invoice_date' => $request->invoice_date,
                 'terms' => $request->terms,
+                'remarks' => $request->remarks,
+                'status' => 'draft',
                 'subtotal' => $subtotal,
                 'shipping_value' => $shippingValue,
                 'total' => $total,
-                'total_boxes' => $totalBoxes,
                 'total_gw' => $totalGw,
             ]);
 
@@ -64,11 +174,9 @@ class InvoiceController extends Controller
                 $invoice->items()->create([
                     'hs_code_id' => $item['hs_code_id'],
                     'qty' => $item['qty'],
-                    'unit_price' => $item['unit_price'],
+                    'unit_price' => $item['unit_price'] ?? 0,
                     'amount' => $item['amount'],
-                    'number_of_boxes' => $item['number_of_boxes'] ?? 0,
                     'g_w' => $item['g_w'] ?? 0,
-                    'dimensions' => $item['dimensions'] ?? null,
                 ]);
             }
 
@@ -76,7 +184,6 @@ class InvoiceController extends Controller
 
             return redirect()->route('invoices.show', $invoice->id);
         } catch (\Exception $e) {
-            dd($e);
             DB::rollBack();
             return back()->withErrors(['error' => 'Failed to create invoice: ' . $e->getMessage()])->withInput();
         }
@@ -85,12 +192,12 @@ class InvoiceController extends Controller
     public function edit(Invoice $invoice)
     {
         $invoice->load(['items.hsCode']);
-        $shippers = Shipper::orderBy('name')->get();
+        $suppliers = Supplier::orderBy('name')->get();
         $billTos = BillTo::orderBy('name')->get();
         $shipTos = ShipTo::orderBy('name')->get();
         $hsCodes = HSCode::orderBy('id')->get();
         
-        return view('admin.invoices.edit', compact('invoice', 'shippers', 'billTos', 'shipTos', 'hsCodes'));
+        return view('admin.invoices.edit', compact('invoice', 'suppliers', 'billTos', 'shipTos', 'hsCodes'));
     }
 
     public function update(UpdateInvoiceRequest $request, Invoice $invoice)
@@ -99,13 +206,11 @@ class InvoiceController extends Controller
             DB::beginTransaction();
 
             $subtotal = 0;
-            $totalBoxes = 0;
             $totalGw = 0;
 
             // Calculate totals from items
             foreach ($request->items as $item) {
                 $subtotal += $item['amount'];
-                $totalBoxes += $item['number_of_boxes'] ?? 0;
                 $totalGw += $item['g_w'] ?? 0;
             }
 
@@ -114,16 +219,16 @@ class InvoiceController extends Controller
 
             // Update invoice
             $invoice->update([
-                'shipper_id' => $request->shipper_id,
+                'supplier_id' => $request->supplier_id,
                 'bill_to_id' => $request->bill_to_id,
                 'ship_to_id' => $request->ship_to_id,
                 'invoice_no' => $request->invoice_no,
                 'invoice_date' => $request->invoice_date,
                 'terms' => $request->terms,
+                'remarks' => $request->remarks,
                 'subtotal' => $subtotal,
                 'shipping_value' => $shippingValue,
                 'total' => $total,
-                'total_boxes' => $totalBoxes,
                 'total_gw' => $totalGw,
             ]);
 
@@ -135,11 +240,9 @@ class InvoiceController extends Controller
                 $invoice->items()->create([
                     'hs_code_id' => $item['hs_code_id'],
                     'qty' => $item['qty'],
-                    'unit_price' => $item['unit_price'],
+                    'unit_price' => $item['unit_price'] ?? 0,
                     'amount' => $item['amount'],
-                    'number_of_boxes' => $item['number_of_boxes'] ?? 0,
                     'g_w' => $item['g_w'] ?? 0,
-                    'dimensions' => $item['dimensions'] ?? null,
                 ]);
             }
 
@@ -154,9 +257,59 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice)
     {
-        $invoice->load(['shipper', 'billTo', 'shipTo', 'items.hsCode']);
+        $invoice->load(['supplier', 'billTo', 'shipTo', 'items.hsCode']);
         
         return view('admin.invoices.show', compact('invoice'));
+    }
+
+    public function approve(Request $request, Invoice $invoice)
+    {
+        $request->validate([
+            'unc_number' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Update invoice with approval details
+            $invoice->update([
+                'unc_number' => $request->unc_number,
+                'approval_email' => $request->email,
+                'status' => 'approved',
+            ]);
+
+            // Generate PDF
+            $invoice->load(['supplier', 'billTo', 'shipTo', 'items.hsCode']);
+            $pdf = Pdf::loadView('admin.invoices.pdf', compact('invoice'));
+            // return view('admin.invoices.pdf', compact('invoice'));
+            $pdf->setPaper('a4', 'portrait');
+            $pdfContent = $pdf->output();
+
+            // Save PDF to storage
+            $pdfPath = 'invoices/' . $invoice->id . '_' . time() . '.pdf';
+            Storage::disk('public')->put($pdfPath, $pdfContent);
+            // Send email with PDF attachment
+            // Create a temporary user-like object for notification
+            $notifiable = new \stdClass();
+            $notifiable->email = $request->email;
+            
+            \Notification::route('mail', $request->email)
+                ->notify(new InvoiceApprovedNotification($pdfContent, $invoice->invoice_no));
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Invoice approved and sent successfully!',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to approve invoice: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }
 

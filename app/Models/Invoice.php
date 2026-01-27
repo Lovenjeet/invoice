@@ -12,12 +12,16 @@ class Invoice extends Model
     use HasFactory;
 
     protected $fillable = [
-        'shipper_id',
-        'bill_to_id',
+        'supplier_id',
+        'bill_to_id',   
         'ship_to_id',
         'invoice_no',
         'invoice_date',
         'terms',
+        'remarks',
+        'unc_number',
+        'approval_email',
+        'status',
         'subtotal',
         'shipping_value',
         'total',
@@ -33,9 +37,9 @@ class Invoice extends Model
         'total_gw' => 'decimal:2',
     ];
 
-    public function shipper(): BelongsTo
+    public function supplier(): BelongsTo
     {
-        return $this->belongsTo(Shipper::class);
+        return $this->belongsTo(Supplier::class);
     }
 
     public function billTo(): BelongsTo

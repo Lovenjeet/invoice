@@ -28,11 +28,11 @@
                 <div class="row g-4 mb-4">
                     <div class="col-md-6">
                         <x-form.select 
-                            name="shipper_id" 
-                            label="Shipper" 
-                            :options="$shippers->pluck('name', 'id')->toArray()" 
-                            :value="old('shipper_id', $invoice->shipper_id)" 
-                            placeholder="Select shipper" 
+                            name="supplier_id" 
+                            label="Supplier" 
+                            :options="$suppliers->pluck('name', 'id')->toArray()" 
+                            :value="old('supplier_id', $invoice->supplier_id)" 
+                            placeholder="Select supplier" 
                             required 
                         />
                     </div>
@@ -101,6 +101,23 @@
                     </div>
                 </div>
 
+                <hr class="my-4">
+
+                <!-- Remarks -->
+                <div class="mb-4">
+                    <label for="remarks" class="form-label fw-semibold">Remarks</label>
+                    <textarea 
+                        name="remarks" 
+                        id="remarks" 
+                        class="form-control @error('remarks') is-invalid @enderror" 
+                        rows="4" 
+                        placeholder="Enter any additional remarks or notes"
+                    >{{ old('remarks', $invoice->remarks) }}</textarea>
+                    @error('remarks')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
                 <div class="d-flex justify-content-end gap-2 mt-4 pt-4 border-top">
                     <a href="{{ route('invoices.show', $invoice->id) }}" class="btn btn-outline-secondary">
                         <i class="bi bi-arrow-left me-2"></i>Cancel
@@ -131,9 +148,7 @@
             'qty' => $item->qty,
             'unit_price' => $item->unit_price,
             'amount' => $item->amount,
-            'number_of_boxes' => $item->number_of_boxes ?? 0,
-            'g_w' => $item->g_w ?? 0,
-            'dimensions' => $item->dimensions ?? ''
+            'g_w' => $item->g_w ?? 0
         ];
     })->values()) !!};
 
@@ -181,9 +196,7 @@
             const qty = itemData ? itemData.qty : '';
             const unitPrice = itemData ? itemData.unit_price : '';
             const amount = itemData ? parseFloat(itemData.amount).toFixed(2) : '0.00';
-            const boxes = itemData ? itemData.number_of_boxes : '';
             const gw = itemData ? itemData.g_w : '';
-            const dimensions = itemData ? itemData.dimensions : '';
             
             itemRow.innerHTML = `
                 <div class="card-body p-3">
@@ -194,7 +207,7 @@
                         </button>
                     </div>
                     <div class="row g-3">
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label class="form-label">HSCode <span class="text-danger">*</span></label>
                             <select name="items[${itemIndex}][hs_code_id]" class="form-select item-hs-code" required>
                                 <option value="">Select HSCode</option>
@@ -208,24 +221,16 @@
                             <input type="number" name="items[${itemIndex}][qty]" class="form-control item-qty" step="0.01" min="0" placeholder="0" value="${qty}" required>
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label">Unit Price ($) <span class="text-danger">*</span></label>
-                            <input type="number" name="items[${itemIndex}][unit_price]" class="form-control item-unit-price" step="0.01" min="0" placeholder="0.00" value="${unitPrice}" required>
+                            <label class="form-label">Unit Price ($)</label>
+                            <input type="number" name="items[${itemIndex}][unit_price]" class="form-control item-unit-price" step="0.01" min="0" placeholder="0.00" value="${unitPrice}">
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">Amount ($)</label>
                             <input type="text" name="items[${itemIndex}][amount]" class="form-control item-amount" readonly value="${amount}">
                         </div>
-                        <div class="col-md-1">
-                            <label class="form-label">Boxes</label>
-                            <input type="number" name="items[${itemIndex}][number_of_boxes]" class="form-control" step="1" min="0" placeholder="0" value="${boxes}">
-                        </div>
                         <div class="col-md-2">
                             <label class="form-label">G.W. (KG)</label>
                             <input type="number" name="items[${itemIndex}][g_w]" class="form-control" step="0.01" min="0" placeholder="0.00" value="${gw}">
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label">Dimensions</label>
-                            <input type="text" name="items[${itemIndex}][dimensions]" class="form-control" placeholder="Enter dimensions" value="${dimensions}">
                         </div>
                     </div>
                 </div>

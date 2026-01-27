@@ -9,15 +9,18 @@ use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\RechargeOfferController;
 use App\Http\Controllers\Admin\BillToController;
+use App\Http\Controllers\Admin\HSCodeController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\ShipToController;
-use App\Http\Controllers\Admin\ShipperController;
+use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Auth routes (public)
 Route::get('login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('login', [AuthController::class, 'login'])->name('login');
+Route::post('resend-otp', [AuthController::class, 'resendOtp'])->name('resend-otp');
+Route::get('cancel-otp', [AuthController::class, 'cancelOtp'])->name('cancel-otp');
 
 // Protected routes
 Route::middleware('auth')->group(function () {
@@ -34,15 +37,15 @@ Route::middleware('auth')->group(function () {
         Route::put('/{user}', [UserController::class,'update'])->name('users.update');
         Route::delete('/{user}', [UserController::class,'destroy'])->name('users.destroy');
     });
-    
-    Route::prefix('shippers')->group(function(){
-        Route::get('/', [ShipperController::class,'index'])->name('shippers.index');
-        Route::get('/create', [ShipperController::class,'create'])->name('shippers.create');
-        Route::post('/', [ShipperController::class,'store'])->name('shippers.store');
-        Route::get('/{shipper}/edit', [ShipperController::class,'edit'])->name('shippers.edit');
-        Route::get('/{shipper}', [ShipperController::class,'show'])->name('shippers.show');
-        Route::put('/{shipper}', [ShipperController::class,'update'])->name('shippers.update');
-        Route::delete('/{shipper}', [ShipperController::class,'destroy'])->name('shippers.destroy');
+
+    Route::prefix('suppliers')->group(function(){
+        Route::get('/', [SupplierController::class,'index'])->name('suppliers.index');
+        Route::get('/create', [SupplierController::class,'create'])->name('suppliers.create');
+        Route::post('/', [SupplierController::class,'store'])->name('suppliers.store');
+        Route::get('/{supplier}/edit', [SupplierController::class,'edit'])->name('suppliers.edit');
+        Route::get('/{supplier}', [SupplierController::class,'show'])->name('suppliers.show');
+        Route::put('/{supplier}', [SupplierController::class,'update'])->name('suppliers.update');
+        Route::delete('/{supplier}', [SupplierController::class,'destroy'])->name('suppliers.destroy');
     });
     
     Route::prefix('bill-tos')->group(function(){
@@ -66,11 +69,23 @@ Route::middleware('auth')->group(function () {
     });
     
     Route::prefix('invoices')->group(function(){
+        Route::get('/', [InvoiceController::class,'index'])->name('invoices.index');
         Route::get('/create', [InvoiceController::class,'create'])->name('invoices.create');
         Route::post('/', [InvoiceController::class,'store'])->name('invoices.store');
         Route::get('/{invoice}/edit', [InvoiceController::class,'edit'])->name('invoices.edit');
         Route::put('/{invoice}', [InvoiceController::class,'update'])->name('invoices.update');
+        Route::post('/{invoice}/approve', [InvoiceController::class,'approve'])->name('invoices.approve');
         Route::get('/{invoice}', [InvoiceController::class,'show'])->name('invoices.show');
+    });
+    
+    Route::prefix('hs-codes')->group(function(){
+        Route::get('/', [HSCodeController::class,'index'])->name('hs-codes.index');
+        Route::get('/create', [HSCodeController::class,'create'])->name('hs-codes.create');
+        Route::post('/', [HSCodeController::class,'store'])->name('hs-codes.store');
+        Route::get('/{hsCode}/edit', [HSCodeController::class,'edit'])->name('hs-codes.edit');
+        Route::put('/{hsCode}', [HSCodeController::class,'update'])->name('hs-codes.update');
+        Route::get('/{hsCode}', [HSCodeController::class,'show'])->name('hs-codes.show');
+        Route::delete('/{hsCode}', [HSCodeController::class,'destroy'])->name('hs-codes.destroy');
     });
     
 });
