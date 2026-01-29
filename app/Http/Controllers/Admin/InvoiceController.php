@@ -12,6 +12,7 @@ use App\Models\ShipTo;
 use App\Models\Supplier;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -20,6 +21,11 @@ class InvoiceController extends Controller
 {
     public function index(Request $request)
     {
+        // Only admins can access invoice list
+        if (!Auth::user()->isAdmin()) {
+            abort(403, 'Unauthorized access.');
+        }
+        
         if ($request->ajax()) {
             return $this->getInvoicesData($request);
         }
@@ -263,6 +269,7 @@ class InvoiceController extends Controller
 
     public function approve(Request $request, Invoice $invoice)
     {
+   
         $request->validate([
             'unc_number' => 'required|string|max:255',
             'email' => 'required|email|max:255',
