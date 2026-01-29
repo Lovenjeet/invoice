@@ -8,7 +8,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
-                    <h1 class="h3 mb-1 fw-semibold">Users</h1>
+                    <h1 class="h3 mb-1 fw-semibold">User Management</h1>
                     <p class="text-muted mb-0">Manage system users and their permissions</p>
                 </div>
                 <a href="{{ route('users.create') }}" class="btn btn-primary">
@@ -20,7 +20,7 @@
     
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
-            <div class="row mb-3">
+            <div class="row g-3 mb-4">
                 <div class="col-md-4">
                     <div class="input-group">
                         <span class="input-group-text bg-white border-end-0">
@@ -28,6 +28,13 @@
                         </span>
                         <input type="text" id="searchInput" class="form-control border-start-0" placeholder="Search by name, email, phone...">
                     </div>
+                </div>
+                <div class="col-md-3">
+                    <select id="roleFilter" class="form-select">
+                        <option value="">All Roles</option>
+                        <option value="admin">Admin</option>
+                        <option value="user">User</option>
+                    </select>
                 </div>
                 <div class="col-md-2">
                     <button type="button" class="btn btn-outline-secondary w-100" id="clearFilters">

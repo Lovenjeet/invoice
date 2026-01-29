@@ -160,27 +160,55 @@
             initDeleteHandlers();
             initDropdowns();
             
-            // Custom search input
+            // Custom search input with debounce
             let searchTimeout;
             $('#searchInput').on('keyup', function() {
                 clearTimeout(searchTimeout);
                 const searchValue = $(this).val();
+                const $input = $(this);
+                
+                // Add loading indicator
+                if (searchValue.length > 0) {
+                    $input.css('background-image', 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%236c757d\' stroke-width=\'2\'%3E%3Cpath d=\'M21 12a9 9 0 1 1-6.219-8.56\'/%3E%3C/svg%3E")');
+                    $input.css('background-repeat', 'no-repeat');
+                    $input.css('background-position', 'right 0.75rem center');
+                    $input.css('padding-right', '2.5rem');
+                } else {
+                    $input.css('background-image', '');
+                    $input.css('padding-right', '');
+                }
+                
                 searchTimeout = setTimeout(function() {
                     usersTable.search(searchValue).draw();
+                    $input.css('background-image', '');
+                    $input.css('padding-right', '');
                 }, 300);
             });
             
-            // Role filter
+            // Role filter with smooth transition
             $('#roleFilter').on('change', function() {
-                usersTable.ajax.reload();
+                const $select = $(this);
+                $select.prop('disabled', true);
+                usersTable.ajax.reload(function() {
+                    $select.prop('disabled', false);
+                });
             });
             
-            // Clear filters
+            // Clear filters with animation
             $('#clearFilters').on('click', function() {
+                const $btn = $(this);
+                const originalText = $btn.html();
+                
+                $btn.prop('disabled', true);
+                $btn.html('<span class="spinner-border spinner-border-sm me-1"></span>Clearing...');
+                
                 $('#searchInput').val('');
                 $('#roleFilter').val('');
                 usersTable.search('').draw();
-                usersTable.ajax.reload();
+                usersTable.ajax.reload(function() {
+                    $btn.prop('disabled', false);
+                    $btn.html(originalText);
+                });
             });
             
             // Auto-dismiss alerts

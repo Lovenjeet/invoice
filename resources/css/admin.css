@@ -1830,3 +1830,375 @@ body {
         padding: 1rem;
     }
 }
+
+/* ============================================
+   User Management Page Styles
+   ============================================ */
+
+/* User Management Header */
+.user-management-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.user-management-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* User Table Enhancements */
+#usersTable {
+    font-size: 0.9375rem;
+}
+
+#usersTable thead th {
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #495057;
+    border-bottom: 2px solid #e9ecef;
+    padding: 1rem 0.75rem;
+    background-color: #f8f9fa;
+}
+
+#usersTable tbody td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+#usersTable tbody tr {
+    transition: all 0.2s ease;
+}
+
+#usersTable tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: translateX(2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* User Role Badges */
+.badge.rounded-pill {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.badge.bg-success.bg-opacity-10 {
+    background-color: rgba(25, 135, 84, 0.1) !important;
+    color: #198754 !important;
+    border: 1px solid rgba(25, 135, 84, 0.2);
+}
+
+.badge.bg-primary.bg-opacity-10 {
+    background-color: rgba(13, 110, 253, 0.1) !important;
+    color: #0d6efd !important;
+    border: 1px solid rgba(13, 110, 253, 0.2);
+}
+
+/* User Form Enhancements */
+.user-form-card {
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.user-form-card .card-body {
+    padding: 2rem;
+}
+
+.user-form-section {
+    margin-bottom: 2rem;
+}
+
+.user-form-section:last-child {
+    margin-bottom: 0;
+}
+
+/* Form Input Enhancements */
+.form-control:focus,
+.form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+    transition: all 0.2s ease;
+}
+
+.form-control,
+.form-select {
+    transition: all 0.2s ease;
+}
+
+.form-control:hover:not(:focus),
+.form-select:hover:not(:focus) {
+    border-color: #ced4da;
+}
+
+/* Input Group Enhancements */
+.input-group-text {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-color: #dee2e6;
+    transition: all 0.2s ease;
+}
+
+.input-group:focus-within .input-group-text {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #e7f1ff 0%, #f0f7ff 100%);
+}
+
+/* Search Input Enhancements */
+#searchInput {
+    transition: all 0.3s ease;
+}
+
+#searchInput:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+/* Filter Select Enhancements */
+#roleFilter {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#roleFilter:hover {
+    border-color: #667eea;
+}
+
+#roleFilter:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+/* Clear Filters Button */
+#clearFilters {
+    transition: all 0.2s ease;
+    border-radius: 0.5rem;
+    font-weight: 500;
+}
+
+#clearFilters:hover:not(:disabled) {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+}
+
+#clearFilters:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Action Dropdown Enhancements */
+.custom-dropdown-toggle {
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-dropdown-toggle:hover {
+    background-color: #f8f9fa;
+    color: #212529 !important;
+    transform: scale(1.1);
+}
+
+.custom-dropdown-toggle:active {
+    transform: scale(0.95);
+}
+
+/* User Form Header Icon */
+.bg-primary.bg-opacity-10 {
+    transition: all 0.3s ease;
+}
+
+.bg-primary.bg-opacity-10:hover {
+    transform: scale(1.05) rotate(5deg);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+}
+
+/* Password Field Enhancements */
+input[type="password"] {
+    letter-spacing: 0.1em;
+}
+
+input[type="password"]::placeholder {
+    letter-spacing: normal;
+}
+
+/* Form Section Dividers */
+.border-top {
+    border-top: 2px solid #e9ecef !important;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+}
+
+/* Button Enhancements */
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-primary:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-outline-secondary {
+    transition: all 0.2s ease;
+}
+
+.btn-outline-secondary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.2);
+}
+
+/* Loading States */
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.15em;
+}
+
+/* Responsive User Management */
+@media (max-width: 768px) {
+    .user-management-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .user-management-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+    
+    .user-form-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    #usersTable {
+        font-size: 0.875rem;
+    }
+    
+    #usersTable thead th,
+    #usersTable tbody td {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .row.g-3 > [class*="col-"] {
+        margin-bottom: 0.75rem;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .d-flex.justify-content-end.gap-2 {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 576px) {
+    .user-form-card .card-body {
+        padding: 1rem;
+    }
+    
+    .user-management-header h1 {
+        font-size: 1.25rem;
+    }
+    
+    .user-management-header p {
+        font-size: 0.875rem;
+    }
+}
+
+/* Animation for table rows */
+@keyframes fadeInRow {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#usersTable tbody tr {
+    animation: fadeInRow 0.3s ease-out;
+}
+
+#usersTable tbody tr:nth-child(1) { animation-delay: 0.05s; }
+#usersTable tbody tr:nth-child(2) { animation-delay: 0.1s; }
+#usersTable tbody tr:nth-child(3) { animation-delay: 0.15s; }
+#usersTable tbody tr:nth-child(4) { animation-delay: 0.2s; }
+#usersTable tbody tr:nth-child(5) { animation-delay: 0.25s; }
+
+/* Empty State */
+.dataTables_empty {
+    padding: 3rem 1rem !important;
+    text-align: center;
+    color: #6c757d;
+}
+
+.dataTables_empty::before {
+    content: '\F4E4';
+    font-family: 'bootstrap-icons';
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Success Messages */
+.alert-success {
+    border-left: 4px solid #198754;
+    background: linear-gradient(90deg, rgba(25, 135, 84, 0.1) 0%, rgba(25, 135, 84, 0.05) 100%);
+    border-radius: 0.5rem;
+    padding: 1rem 1.5rem;
+}
+
+/* Error Messages */
+.alert-danger {
+    border-left: 4px solid #dc3545;
+    background: linear-gradient(90deg, rgba(220, 53, 69, 0.1) 0%, rgba(220, 53, 69, 0.05) 100%);
+    border-radius: 0.5rem;
+    padding: 1rem 1.5rem;
+}

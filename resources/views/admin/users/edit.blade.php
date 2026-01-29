@@ -13,8 +13,15 @@
                     <li class="breadcrumb-item active">Edit</li>
                 </ol>
             </nav>
-            <h1 class="h3 mb-1 fw-semibold">Edit User</h1>
-            <p class="text-muted mb-0">Update the user details below</p>
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="bg-primary bg-opacity-10 p-3 rounded-3">
+                    <i class="bi bi-person-gear text-primary" style="font-size: 1.5rem;"></i>
+                </div>
+                <div>
+                    <h1 class="h3 mb-1 fw-semibold">Edit User</h1>
+                    <p class="text-muted mb-0">Update the user details below</p>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -26,13 +33,13 @@
                 
                 <div class="row g-4">
                     <div class="col-md-6">
-                        <x-form.input name="name" label="Name" :value="old('name', $user->name)" placeholder="Enter full name" required />
+                        <x-form.input name="name" label="Full Name" :value="old('name', $user->name)" placeholder="Enter full name" required />
                     </div>
                     <div class="col-md-6">
-                        <x-form.input name="email" label="Email" type="email" :value="old('email', $user->email)" placeholder="Enter email address" required />
+                        <x-form.input name="email" label="Email Address" type="email" :value="old('email', $user->email)" placeholder="Enter email address" required />
                     </div>
                     <div class="col-md-6">
-                        <x-form.input name="phone" label="Phone" type="tel" :value="old('phone', $user->phone)" placeholder="Enter phone number" />
+                        <x-form.input name="phone" label="Phone Number" type="tel" :value="old('phone', $user->phone)" placeholder="Enter phone number (optional)" />
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
@@ -51,7 +58,9 @@
                             </select>
                             @if($user->role === 'admin' && $user->id === auth()->id())
                                 <input type="hidden" name="role" value="admin">
-                                <small class="text-muted">You cannot change your own role.</small>
+                                <small class="text-muted d-block mt-1">You cannot change your own role.</small>
+                            @else
+                                <small class="text-muted d-block mt-1">Select the user's role in the system</small>
                             @endif
                             @error('role')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -59,7 +68,8 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <x-form.input name="password" label="Password (Leave blank to keep current)" type="password" placeholder="Minimum 8 characters" />
+                        <x-form.input name="password" label="Password" type="password" placeholder="Leave blank to keep current password" />
+                        <small class="text-muted">Leave blank if you don't want to change the password</small>
                     </div>
                     <div class="col-md-6">
                         <x-form.input name="password_confirmation" label="Confirm Password" type="password" placeholder="Re-enter password" />

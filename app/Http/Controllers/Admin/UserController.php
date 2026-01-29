@@ -26,6 +26,7 @@ class UserController extends Controller
         $start = $request->get('start', 0);
         $length = $request->get('length', 25);
         $search = $request->get('search')['value'] ?? '';
+        $roleFilter = $request->get('role_filter', '');
         
         $columns = ['id', 'name', 'email', 'role', 'created_at'];
         $orderColumn = $request->get('order')[0]['column'] ?? 0;
@@ -33,6 +34,11 @@ class UserController extends Controller
         $orderBy = $columns[$orderColumn] ?? 'id';
         
         $query = User::query();
+        
+        // Role filter
+        if (!empty($roleFilter)) {
+            $query->where('role', $roleFilter);
+        }
         
         // Search functionality
         if (!empty($search)) {
@@ -51,7 +57,6 @@ class UserController extends Controller
         
         // Order and paginate
         $users = $query->orderBy($orderBy, $orderDir)
-                        ->where('role', 'admin')   
                         ->skip($start)
                         ->take($length)
                         ->get();
@@ -59,14 +64,14 @@ class UserController extends Controller
         $data = [];
         foreach ($users as $user) {
             $roleBadge = $user->role === 'admin' 
-                ? '<span class="badge bg-success bg-opacity-10 text-success rounded-pill">Admin</span>'
-                : '<span class="badge bg-primary bg-opacity-10 text-primary rounded-pill">User</span>';
+                ? '<span class="badge bg-success bg-opacity-10 text-success rounded-pill fw-medium">Admin</span>'
+                : '<span class="badge bg-primary bg-opacity-10 text-primary rounded-pill fw-medium">User</span>';
             
             $data[] = [
                 'id' => '<span class="fw-medium">#' . $user->id . '</span>',
-                'name' => '<span class="fw-medium">' . e($user->name) . '</span>',
-                'email' => '<span>' . e($user->email) . '</span>',
-                'phone' => '<span>' . e($user->phone ?? 'N/A') . '</span>',
+                'name' => '<div class="d-flex align-items-center"><span class="fw-medium">' . e($user->name) . '</span></div>',
+                'email' => '<span class="text-muted">' . e($user->email) . '</span>',
+                'phone' => '<span class="text-muted">' . e($user->phone ?? 'N/A') . '</span>',
                 'role' => $roleBadge,
                 'created_at' => '<span class="text-muted">' . $user->created_at->format('M d, Y') . '</span>',
                 'actions' => view('admin.users.partials.action-buttons', compact('user'))->render(),
@@ -95,7 +100,7 @@ class UserController extends Controller
             'email' => $data['email'],
             'phone' => $data['phone'] ?? null,
             'password' => Hash::make($data['password']),
-            'role' => 'admin',
+            'role' => $data['role'] ?? 'admin',
         ]);
         
         if ($request->ajax() || $request->expectsJson()) {

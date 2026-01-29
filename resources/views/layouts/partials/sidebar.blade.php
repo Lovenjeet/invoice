@@ -50,6 +50,12 @@
                             <span>SKUs</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="{{ route('users.index') }}" class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
+                            <i class="bi bi-people"></i>
+                            <span>Users Management</span>
+                        </a>
+                    </li>
                 @else
                     {{-- Regular User Menu --}}
                     <li class="nav-item">
