@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Notifications\OtpNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -70,8 +70,8 @@ class AuthController extends Controller
                 'otp_verified' => false,
             ]);
             
-            // Send OTP via email
-            $user->notify(new OtpNotification($otp));
+            // Send OTP via email using Postmark
+            $this->sendOtpEmail($user->email, $user->name, $otp);
             
             // Logout temporarily (will login again after OTP verification)
             Auth::logout();
@@ -168,8 +168,8 @@ class AuthController extends Controller
             'otp_verified' => false,
         ]);
         
-        // Send new OTP
-        $user->notify(new OtpNotification($otp));
+        // Send new OTP via Postmark
+        $this->sendOtpEmail($user->email, $user->name, $otp);
         
         return redirect()->route('login')
             ->withInput($request->only('email'))
@@ -211,6 +211,47 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
         
         return redirect()->route('login');
+    }
+    
+    /**
+     * Send OTP email via Postmark
+     */
+    protected function sendOtpEmail(string $toEmail, string $userName, string $otp): void
+    {
+        $htmlBody = "
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset='utf-8'>
+                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            </head>
+            <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;'>
+                <div style='background-color: #f8f9fa; padding: 30px; border-radius: 8px;'>
+                    <h1 style='color: #333; margin-top: 0;'>Hello {$userName}!</h1>
+                    <p style='font-size: 16px; margin-bottom: 20px;'>Your One-Time Password (OTP) for login is:</p>
+                    <div style='background-color: #fff; border: 2px solid #007bff; border-radius: 6px; padding: 20px; text-align: center; margin: 20px 0;'>
+                        <p style='font-size: 32px; font-weight: bold; color: #007bff; letter-spacing: 4px; margin: 0;'>{$otp}</p>
+                    </div>
+                    <p style='font-size: 14px; color: #666;'>This OTP will expire in 10 minutes.</p>
+                    <p style='font-size: 14px; color: #666;'>If you did not request this OTP, please ignore this email.</p>
+                    <hr style='border: none; border-top: 1px solid #ddd; margin: 30px 0;'>
+                    <p style='font-size: 14px; color: #666; margin-bottom: 0;'>Thank you for using our application!</p>
+                </div>
+            </body>
+            </html>
+        ";
+        
+        Http::withHeaders([
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json',
+            'X-Postmark-Server-Token' => env('POSTMARK_API_KEY'),
+        ])->post('https://api.postmarkapp.com/email', [
+            'From' => env('POSTMARK_FROM_ADDRESS'),
+            'To' => $toEmail,
+            'Subject' => 'Your Login OTP Code',
+            'HtmlBody' => $htmlBody,
+            'MessageStream' => 'outbound',
+        ]);
     }
 }
 

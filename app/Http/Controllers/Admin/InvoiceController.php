@@ -10,11 +10,10 @@ use App\Models\HSCode;
 use App\Models\Invoice;
 use App\Models\ShipTo;
 use App\Models\Supplier;
-use App\Notifications\InvoiceApprovedNotification;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 class InvoiceController extends Controller
@@ -289,13 +288,9 @@ class InvoiceController extends Controller
             // Save PDF to storage
             $pdfPath = 'invoices/' . $invoice->id . '_' . time() . '.pdf';
             Storage::disk('public')->put($pdfPath, $pdfContent);
-            // Send email with PDF attachment
-            // Create a temporary user-like object for notification
-            $notifiable = new \stdClass();
-            $notifiable->email = $request->email;
             
-            \Notification::route('mail', $request->email)
-                ->notify(new InvoiceApprovedNotification($pdfContent, $invoice->invoice_no));
+            // Send email with PDF attachment via Postmark
+            $this->sendInvoiceApprovalEmail($request->email, $invoice->invoice_no, $pdfContent);
 
             DB::commit();
 
@@ -310,6 +305,56 @@ class InvoiceController extends Controller
                 'message' => 'Failed to approve invoice: ' . $e->getMessage(),
             ], 500);
         }
+    }
+    
+    /**
+     * Send invoice approval email via Postmark
+     */
+    protected function sendInvoiceApprovalEmail(string $toEmail, string $invoiceNo, string $pdfContent): void
+    {
+        $htmlBody = "
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset='utf-8'>
+                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            </head>
+            <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;'>
+                <div style='background-color: #f8f9fa; padding: 30px; border-radius: 8px;'>
+                    <h1 style='color: #333; margin-top: 0;'>Hello!</h1>
+                    <p style='font-size: 16px; margin-bottom: 20px;'>Your invoice has been approved and is attached to this email.</p>
+                    <div style='background-color: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 15px; margin: 20px 0;'>
+                        <p style='font-size: 14px; margin: 0;'><strong>Invoice Number:</strong> {$invoiceNo}</p>
+                    </div>
+                    <p style='font-size: 14px; color: #666;'>Please find the invoice PDF attached.</p>
+                    <hr style='border: none; border-top: 1px solid #ddd; margin: 30px 0;'>
+                    <p style='font-size: 14px; color: #666; margin-bottom: 0;'>Thank you!</p>
+                </div>
+            </body>
+            </html>
+        ";
+        
+        // Encode PDF content as base64 for Postmark attachment
+        $pdfBase64 = base64_encode($pdfContent);
+        
+        Http::withHeaders([
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json',
+            'X-Postmark-Server-Token' => env('POSTMARK_API_KEY'),
+        ])->post('https://api.postmarkapp.com/email', [
+            'From' => env('POSTMARK_FROM_ADDRESS'),
+            'To' => $toEmail,
+            'Subject' => 'Invoice Approved - ' . $invoiceNo,
+            'HtmlBody' => $htmlBody,
+            'MessageStream' => 'outbound',
+            'Attachments' => [
+                [
+                    'Name' => 'Invoice_' . $invoiceNo . '.pdf',
+                    'Content' => $pdfBase64,
+                    'ContentType' => 'application/pdf',
+                ],
+            ],
+        ]);
     }
 }
 
