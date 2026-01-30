@@ -2202,3 +2202,9 @@ input[type="password"]::placeholder {
     border-radius: 0.5rem;
     padding: 1rem 1.5rem;
 }
+.dataTables_filter{
+    display: none !important;
+}
+.btn-outline-secondary{
+    padding: .4rem 1rem !important;
+ }

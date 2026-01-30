@@ -30,7 +30,7 @@
                     </div>
                 </div>
                 <div class="col-md-2">
-                    <button type="button" class="btn btn-outline-secondary w-100" id="clearFilters">
+                    <button type="button" class="btn btn-outline-secondary" id="clearFilters">
                         <i class="bi bi-x-circle me-1"></i> Clear
                     </button>
                 </div>

@@ -37,14 +37,14 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <button type="button" class="btn btn-outline-secondary w-100" id="clearFilters">
+                    <button type="button" class="btn btn-outline-secondary" id="clearFilters">
                         <i class="bi bi-x-circle me-1"></i> Clear
                     </button>
                 </div>
             </div>
             
             <div class="table-responsive">
-                <table id="usersTable" class="table table-hover align-middle w-100">
+                <table id="usersTable" class="table table-hover">
                     <thead class="table-light">
                         <tr>
                             <th>ID</th>
